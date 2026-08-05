@@ -39,6 +39,14 @@ Open a profile window directly by name:
 /solotrigger PROFILE_NAME
 ```
 
+Open the live diagnostics window:
+
+```text
+/solotriggerdebug
+```
+
+The diagnostics window displays the nearby player count, the non-AFK nearby player count, and the distance to the nearest currently loaded aetheryte.
+
 Each profile contains:
 
 - A unique name

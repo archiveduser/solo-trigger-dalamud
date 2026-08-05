@@ -9,12 +9,14 @@ namespace SoloTrigger;
 public sealed class Plugin : IDalamudPlugin
 {
     private const string CommandName = "/solotrigger";
+    private const string DebugCommandName = "/solotriggerdebug";
 
     private readonly WindowSystem windowSystem = new("SoloTrigger");
     private readonly Dictionary<Guid, TriggerRuntime> runtimes = [];
     private readonly Dictionary<Guid, ProfileWindow> profileWindows = [];
     private readonly CommandDispatcher commandDispatcher;
     private readonly ConfigurationWindow configurationWindow;
+    private readonly DebugWindow debugWindow;
     private DateTime nextEvaluationAt = DateTime.MinValue;
 
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
@@ -33,7 +35,9 @@ public sealed class Plugin : IDalamudPlugin
         this.commandDispatcher = new CommandDispatcher(CommandManager, Log);
 
         this.configurationWindow = new ConfigurationWindow(this);
+        this.debugWindow = new DebugWindow(ObjectTable);
         this.windowSystem.AddWindow(this.configurationWindow);
+        this.windowSystem.AddWindow(this.debugWindow);
         foreach (var profile in this.Configuration.Profiles)
         {
             this.CreateProfileRuntime(profile);
@@ -42,6 +46,10 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.AddHandler(CommandName, new CommandInfo(this.OnCommand)
         {
             HelpMessage = "打开配置页；使用 /solotrigger <配置名> 打开对应配置窗口。",
+        });
+        CommandManager.AddHandler(DebugCommandName, new CommandInfo(this.OnDebugCommand)
+        {
+            HelpMessage = "打开 Solo Trigger Debug 窗口。",
         });
 
         PluginInterface.UiBuilder.Draw += this.DrawUi;
@@ -55,6 +63,7 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw -= this.DrawUi;
         PluginInterface.UiBuilder.OpenMainUi -= this.ToggleConfigurationWindow;
         CommandManager.RemoveHandler(CommandName);
+        CommandManager.RemoveHandler(DebugCommandName);
         this.windowSystem.RemoveAllWindows();
     }
 
@@ -170,6 +179,8 @@ public sealed class Plugin : IDalamudPlugin
 
         this.OpenProfile(profile);
     }
+
+    private void OnDebugCommand(string command, string args) => this.debugWindow.Toggle();
 
     private void OnFrameworkUpdate(IFramework framework)
     {
