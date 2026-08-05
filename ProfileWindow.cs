@@ -40,7 +40,7 @@ internal sealed class ProfileWindow : Window
         if (PlayerCounter.UsesAetheryteExclusion(this.profile.CountType) &&
             PlayerCounter.IsInsideMajorAetheryteRange(snapshot))
         {
-            ImGui.TextDisabled("位于大水晶 100 yalms 内，人数按 0 判断。");
+            ImGui.TextDisabled("位于大水晶 125 yalms 内，人数按 0 判断。");
         }
         ImGui.Text($"触发条件：人数 ≤ {this.profile.TriggerCount}");
         ImGui.Text($"状态：{this.runtime.StatusText}");

@@ -34,7 +34,7 @@ internal sealed class DebugWindow : Window
         else
         {
             ImGui.Text($"最近大水晶水平距离：{nearestAetheryteDistance.Value:F1} yalms");
-            ImGui.Text($"100 yalms 排除范围：{(nearestAetheryteDistance.Value <= PlayerCounter.MajorAetheryteExclusionRange ? "是" : "否")}");
+            ImGui.Text($"125 yalms 排除范围：{(nearestAetheryteDistance.Value <= PlayerCounter.MajorAetheryteExclusionRange ? "是" : "否")}");
         }
     }
 }

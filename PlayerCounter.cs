@@ -13,7 +13,7 @@ internal readonly record struct PlayerSnapshot(
 
 internal static class PlayerCounter
 {
-    internal const float MajorAetheryteExclusionRange = 100f;
+    internal const float MajorAetheryteExclusionRange = 125f;
 
     private const uint AwayOnlineStatusId = 17;
 

@@ -17,7 +17,7 @@ Then search for and install `Solo Trigger`.
 ## Features
 
 - Create and persist multiple independent trigger profiles.
-- Choose between all players, non-AFK players, and variants that treat the count as zero while the local player is within 100 horizontal yalms of a major aetheryte.
+- Choose between all players, non-AFK players, and variants that treat the count as zero while the local player is within 125 horizontal yalms of a major aetheryte.
 - Exclude the local player and UI preview characters from player counts.
 - Run a start command when the selected count is less than or equal to the configured threshold.
 - Run an end command when the selected count is greater than the configured threshold.
