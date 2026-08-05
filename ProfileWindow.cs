@@ -10,13 +10,19 @@ internal sealed class ProfileWindow : Window
     private readonly TriggerProfile profile;
     private readonly TriggerRuntime runtime;
     private readonly IObjectTable objectTable;
+    private readonly IReadOnlySet<uint> majorAetheryteIds;
 
-    public ProfileWindow(TriggerProfile profile, TriggerRuntime runtime, IObjectTable objectTable)
+    public ProfileWindow(
+        TriggerProfile profile,
+        TriggerRuntime runtime,
+        IObjectTable objectTable,
+        IReadOnlySet<uint> majorAetheryteIds)
         : base($"Solo Trigger - {profile.Name}###{profile.Id}")
     {
         this.profile = profile;
         this.runtime = runtime;
         this.objectTable = objectTable;
+        this.majorAetheryteIds = majorAetheryteIds;
         this.Size = new Vector2(360, 160);
         this.SizeCondition = ImGuiCond.FirstUseEver;
     }
@@ -24,13 +30,18 @@ internal sealed class ProfileWindow : Window
     public override void Draw()
     {
         this.WindowName = $"Solo Trigger - {this.profile.Name}###{this.profile.Id}";
-        var count = PlayerCounter.Select(PlayerCounter.Count(this.objectTable), this.profile.CountType);
-        var countLabel = this.profile.CountType == TriggerCountType.NearbyPlayers
-            ? "附近玩家数量"
-            : "附近非离开玩家数量";
+        var snapshot = PlayerCounter.Capture(this.objectTable, this.majorAetheryteIds);
+        var count = PlayerCounter.Select(snapshot, this.profile.CountType);
+        var countLabel = PlayerCounter.GetModeLabel(this.profile.CountType);
 
         ImGui.Text($"配置：{this.profile.Name}");
-        ImGui.Text($"{countLabel}：{count}");
+        ImGui.Text($"检测模式：{countLabel}");
+        ImGui.Text($"当前判断人数：{count}");
+        if (PlayerCounter.UsesAetheryteExclusion(this.profile.CountType) &&
+            PlayerCounter.IsInsideMajorAetheryteRange(snapshot))
+        {
+            ImGui.TextDisabled("位于大水晶 100 yalms 内，人数按 0 判断。");
+        }
         ImGui.Text($"触发条件：人数 ≤ {this.profile.TriggerCount}");
         ImGui.Text($"状态：{this.runtime.StatusText}");
         ImGui.Separator();

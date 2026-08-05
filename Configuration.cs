@@ -2,10 +2,12 @@ using Dalamud.Configuration;
 
 namespace SoloTrigger;
 
-public enum TriggerCountType
+public enum PlayerCountMode
 {
-    NearbyPlayers,
+    AllPlayers,
     NonAwayPlayers,
+    AllPlayersAwayFromAetheryte,
+    NonAwayPlayersAwayFromAetheryte,
 }
 
 public sealed class TriggerProfile
@@ -14,7 +16,7 @@ public sealed class TriggerProfile
 
     public string Name { get; set; } = "新配置";
 
-    public TriggerCountType CountType { get; set; }
+    public PlayerCountMode CountType { get; set; }
 
     public int TriggerCount { get; set; }
 

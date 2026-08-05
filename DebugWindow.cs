@@ -1,6 +1,5 @@
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 
@@ -9,56 +8,33 @@ namespace SoloTrigger;
 internal sealed class DebugWindow : Window
 {
     private readonly IObjectTable objectTable;
+    private readonly IReadOnlySet<uint> majorAetheryteIds;
 
-    public DebugWindow(IObjectTable objectTable)
+    public DebugWindow(IObjectTable objectTable, IReadOnlySet<uint> majorAetheryteIds)
         : base("Solo Trigger Debug###SoloTriggerDebug")
     {
         this.objectTable = objectTable;
+        this.majorAetheryteIds = majorAetheryteIds;
         this.Size = new Vector2(360, 150);
         this.SizeCondition = ImGuiCond.FirstUseEver;
     }
 
     public override void Draw()
     {
-        var counts = PlayerCounter.Count(this.objectTable);
-        ImGui.Text($"附近玩家：{counts.Nearby}");
-        ImGui.Text($"非离开玩家：{counts.NonAway}");
+        var snapshot = PlayerCounter.Capture(this.objectTable, this.majorAetheryteIds);
+        ImGui.Text($"所有玩家：{snapshot.AllPlayers}");
+        ImGui.Text($"非离开玩家：{snapshot.NonAwayPlayers}");
 
-        var nearestAetheryteDistance = this.GetNearestAetheryteDistance();
+        var nearestAetheryteDistance = snapshot.NearestMajorAetheryteHorizontalDistance;
         if (nearestAetheryteDistance is null)
         {
-            ImGui.Text("最近传送水晶距离：不可用");
-            ImGui.TextDisabled("当前区域未加载传送水晶，或玩家尚未登录。");
+            ImGui.Text("最近大水晶水平距离：不可用");
+            ImGui.TextDisabled("当前区域未加载大水晶，或玩家尚未登录。");
         }
         else
         {
-            ImGui.Text($"最近传送水晶距离：{nearestAetheryteDistance.Value:F1} yalms");
+            ImGui.Text($"最近大水晶水平距离：{nearestAetheryteDistance.Value:F1} yalms");
+            ImGui.Text($"100 yalms 排除范围：{(nearestAetheryteDistance.Value <= PlayerCounter.MajorAetheryteExclusionRange ? "是" : "否")}");
         }
-    }
-
-    private float? GetNearestAetheryteDistance()
-    {
-        var localPlayer = this.objectTable.LocalPlayer;
-        if (localPlayer is null)
-        {
-            return null;
-        }
-
-        float? nearestDistance = null;
-        foreach (var gameObject in this.objectTable)
-        {
-            if (gameObject.ObjectKind != ObjectKind.Aetheryte)
-            {
-                continue;
-            }
-
-            var distance = Vector3.Distance(localPlayer.Position, gameObject.Position);
-            if (nearestDistance is null || distance < nearestDistance.Value)
-            {
-                nearestDistance = distance;
-            }
-        }
-
-        return nearestDistance;
     }
 }

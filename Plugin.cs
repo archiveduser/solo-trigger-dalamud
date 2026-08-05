@@ -17,11 +17,13 @@ public sealed class Plugin : IDalamudPlugin
     private readonly CommandDispatcher commandDispatcher;
     private readonly ConfigurationWindow configurationWindow;
     private readonly DebugWindow debugWindow;
+    private readonly HashSet<uint> majorAetheryteIds;
     private DateTime nextEvaluationAt = DateTime.MinValue;
 
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
     [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
     [PluginService] internal static IObjectTable ObjectTable { get; private set; } = null!;
+    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
@@ -33,9 +35,10 @@ public sealed class Plugin : IDalamudPlugin
         this.Configuration = PluginInterface.GetPluginConfig() as PluginConfiguration ?? new PluginConfiguration();
         this.RepairConfiguration();
         this.commandDispatcher = new CommandDispatcher(CommandManager, Log);
+        this.majorAetheryteIds = PlayerCounter.BuildMajorAetheryteIds(DataManager);
 
         this.configurationWindow = new ConfigurationWindow(this);
-        this.debugWindow = new DebugWindow(ObjectTable);
+        this.debugWindow = new DebugWindow(ObjectTable, this.majorAetheryteIds);
         this.windowSystem.AddWindow(this.configurationWindow);
         this.windowSystem.AddWindow(this.debugWindow);
         foreach (var profile in this.Configuration.Profiles)
@@ -154,7 +157,7 @@ public sealed class Plugin : IDalamudPlugin
     private void CreateProfileRuntime(TriggerProfile profile)
     {
         var runtime = new TriggerRuntime(profile, this.commandDispatcher);
-        var window = new ProfileWindow(profile, runtime, ObjectTable);
+        var window = new ProfileWindow(profile, runtime, ObjectTable, this.majorAetheryteIds);
         this.runtimes[profile.Id] = runtime;
         this.profileWindows[profile.Id] = window;
         this.windowSystem.AddWindow(window);
@@ -193,13 +196,13 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         this.nextEvaluationAt = now.AddMilliseconds(250);
-        var counts = PlayerCounter.Count(ObjectTable);
+        var snapshot = PlayerCounter.Capture(ObjectTable, this.majorAetheryteIds);
         foreach (var (profileId, runtime) in this.runtimes)
         {
             var profile = this.Configuration.Profiles.FirstOrDefault(candidate => candidate.Id == profileId);
             if (profile is not null && runtime.IsRunning)
             {
-                runtime.Evaluate(PlayerCounter.Select(counts, profile.CountType));
+                runtime.Evaluate(PlayerCounter.Select(snapshot, profile.CountType));
             }
         }
     }

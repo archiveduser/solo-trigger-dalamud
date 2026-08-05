@@ -102,19 +102,16 @@ internal sealed class ConfigurationWindow : Window
         ImGui.TextDisabled("名称不能为空，且不能与其他配置重复。");
 
         ImGui.SetNextItemWidth(280);
-        var typeLabel = profile.CountType == TriggerCountType.NearbyPlayers ? "附近人数" : "在线人数（非离开）";
-        if (ImGui.BeginCombo("触发类型", typeLabel))
+        var typeLabel = PlayerCounter.GetModeLabel(profile.CountType);
+        if (ImGui.BeginCombo("检测模式", typeLabel))
         {
-            if (ImGui.Selectable("附近人数", profile.CountType == TriggerCountType.NearbyPlayers))
+            foreach (var mode in Enum.GetValues<PlayerCountMode>())
             {
-                profile.CountType = TriggerCountType.NearbyPlayers;
-                this.plugin.SaveConfiguration();
-            }
-
-            if (ImGui.Selectable("在线人数（非离开）", profile.CountType == TriggerCountType.NonAwayPlayers))
-            {
-                profile.CountType = TriggerCountType.NonAwayPlayers;
-                this.plugin.SaveConfiguration();
+                if (ImGui.Selectable(PlayerCounter.GetModeLabel(mode), profile.CountType == mode))
+                {
+                    profile.CountType = mode;
+                    this.plugin.SaveConfiguration();
+                }
             }
 
             ImGui.EndCombo();
